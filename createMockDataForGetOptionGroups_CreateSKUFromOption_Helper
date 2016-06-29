@@ -1,0 +1,43 @@
+//This function has a problem of bi-direction associations. The createMockDataForGetOptionGroups() works well with arrayAppend() to add SKU from Option side, while the Options linked with SKU from the SKU side. But this functino is in opposite way, which still cannot save the SKUID to option entity. 
+//Make the legend file for future reference
+
+	private any function createMockDataForGetOptionGroups_CreateSKUFromOption_Helper(string optionGroupId1, string optionGroupId2) {
+		var productData = {
+			productID = ""
+		};
+		var mockProduct = createPersistedTestEntity('Product', productData);
+		
+		var skuData1 = {
+			skuID = "",
+			product = {
+				productID = mockProduct.getProductID()
+			}
+		};
+		var mockSku = createPersistedTestEntity('Sku', skuData1);
+		
+//		var mockOption1 = createMockOption(arguments.optionGroupId1,mockSku.getSkuID());
+//		var mockOption2 = createMockOption(arguments.optionGroupId2,mockSku.getSkuID());
+		var mockOption1 = createMockOption(arguments.optionGroupId1);
+		var mockOption2 = createMockOption(arguments.optionGroupId2);
+		if (!mockOption1.hasSku(mockSKU)) {
+			mockOption1.addSku(mockSku);
+			arrayAppend(mockSku.getOptions(), mockOption1);
+			arrayAppend(mockOption1.getSkus(), mockSku);
+		}
+		
+		if (!mockOption2.hasSku(mockSKU)) {
+			mockOption2.addSku(mockSku);
+			mockSku.addOption(mockOption2);
+			arrayAppend(mockOption2.getSkus(), mockSku);
+		}
+
+		//testing the bi-direction
+		request.debug(mockOption1.hasSku(mockSku));
+		request.debug(mockOption2.hasSku(mockSku));
+		
+		request.debug(arrayLen(mockOption1.getSkus()));
+		request.debug(mockOption1.getSkus()[1].getProduct().getProductID());
+		
+		request.debug(mockSku.getOptions()[1].getOptionID());
+		return mockProduct;
+	}
